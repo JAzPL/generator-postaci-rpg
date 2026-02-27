@@ -1,72 +1,224 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8">
-  <title>Kreator Postaci RPG - Obraz z Pollinations</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kreator Postaci RPG – Polska wersja</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; background: #f9f9fb; }
-    input, button { padding: 8px 12px; font-size: 16px; }
-    input[type="number"] { width: 90px; }
-    #generated { max-width: 100%; height: auto; display: none; margin-top: 12px; }
-    #status { margin-top: 8px; color: #333; }
+    :root {
+      --tlo: #0b1020;
+      --kartka: #141a2b;
+      --tekst: #e8eaf6;
+      --muted: #aab4d4;
+      --akcent: #7c3aed;
+      --ziel: #10b981;
+      --czerw: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, Arial, sans-serif; background: linear-gradient(135deg, #0b1020 0%, #1a1f2b 60%, #0b1020 100%); color: var(--tekst); min-height: 100vh; }
+    .container { max-width: 1024px; margin: 32px auto; padding: 0 16px; }
+    h1 { font-size: 28px; margin: 0 0 12px; background: linear-gradient(90deg, #fff, #c7d2fe); -webkit-background-clip: text; color: transparent; }
+    .kartka { background: rgba(20,26,43,0.95); border: 1px solid #2a2f52; border-radius: 12px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,.25); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label { display: block; color: var(--muted); font-size: 13px; margin: 8px 0 6px; }
+    input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #374165; background: #0b1220; color: var(--tekst); }
+    textarea { resize: vertical; min-height: 80px; }
+    #generuj { margin-top: 12px; padding: 12px 16px; font-size: 14px; border-radius: 8px; border: 0; background: linear-gradient(135deg, #7c3aed, #4c1d95); color: white; cursor: pointer; }
+    #generuj:hover { filter: brightness(1.05); }
+    #status { margin-top: 8px; font-weight: 600; }
+    #wynik { width: 100%; max-width: 100%; margin-top: 12px; border-radius: 8px; border: 1px solid #2a2f52; }
+    #log { font-family: monospace; white-space: pre-wrap; background:#0b1020; color:#e5e7eb; padding: 10px; border-radius: 8px; border:1px solid #2a2f52; max-height: 180px; overflow: auto; margin-top: 12px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <h1>Kreator Postaci RPG</h1>
-  <p>Wpisz opis postaci (np. Elf Łucznik, Cyberpunk Samuraj):</p>
-  <input id="prompt" type="text" placeholder="Opis postaci" size="60" />
-  <br/><br/>
-  <label>Wymiary obrazu (px):</label>
-  <input id="width" type="number" value="512" min="128" max="2048" />
-  <input id="height" type="number" value="512" min="128" max="2048" />
-  <br/><br/>
-  <label>Kroki (steps):</label>
-  <input id="steps" type="number" value="50" min="1" max="200" />
-  <br/><br/>
-  <button id="generateBtn">Generuj obraz</button>
-  <p id="status" aria-live="polite"></p>
+  <div class="container">
+    <h1>Kreator Postaci RPG — wersja po polsku</h1>
 
-  <div id="result" aria-label="Wygenerowany obraz" style="margin-top:16px;">
-    <img id="generated" src="" alt="Wygenerowany obraz pojawi się tutaj" />
+    <div class="kartka" id="sekcja-kreatora">
+      <div class="grid">
+        <div>
+          <label>Imię postaci</label>
+          <input id="imie_postaci" type="text" placeholder="np. Ariniel, Alarik" />
+        </div>
+        <div>
+          <label>Rasa</label>
+          <select id="rasa_postaci">
+            <option value="Człowiek">Człowiek</option>
+            <option value="Elf">Elf</option>
+            <option value="Krasnolud">Krasnolud</option>
+            <option value="Ork">Ork</option>
+            <option value="Goblin">Goblin</option>
+            <option value="Cyborge">Cyborge</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:8px;">
+        <div>
+          <label>Klasa</label>
+          <select id="klasa_postaci">
+            <option value="Wojownik">Wojownik</option>
+            <option value="Łucznik">Łucznik</option>
+            <option value="Czarodziej">Czarodziej</option>
+            <option value="Złodziej">Złodziej</option>
+            <option value="Mnich">Mnich</option>
+            <option value="Rycerz">Rycerz</option>
+          </select>
+        </div>
+        <div>
+          <label>Wygląd (krótki opis)</label>
+          <input id="wyglad_postaci" type="text" placeholder="np. wysoki, smukły, długie włosy, srebrne oczy" />
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:8px;">
+        <div>
+          <label>Opis cech charakteru (opcjonalnie)</label>
+          <textarea id="cechy_postaci" placeholder="np. odważny, ciekawy świata, lojalny." ></textarea>
+        </div>
+        <div>
+          <label>Seed (opcjonalnie, -1 = losowe)</label>
+          <input id="seed_postaci" type="number" value="-1" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:8px;">
+        <div>
+          <label>Klucz API (opcjonalnie)</label>
+          <input id="klucz_api" type="password" placeholder="Wklej klucz API (Bearer token)" autocomplete="off" />
+        </div>
+        <div>
+          <label>Pokaż klucz</label><br/>
+          <input id="pokaz_klucz" type="checkbox" />
+        </div>
+      </div>
+
+      <button id="generuj" aria-label="Generuj postać i obraz">Generuj postać i obraz</button>
+      <div id="status" aria-live="polite"></div>
+
+      <h3 style="margin-top:14px;">Opis postaci (po polsku)</h3>
+      <div id="opis_postaci" style="min-height:60px; padding:8px; background:#0b1220; border:1px solid #2a2f52; border-radius:6px;"></div>
+
+      <img id="wynik" alt="Wygenerowany obraz postaci" />
+
+      <div id="log" aria-label="Dziennik logów"></div>
+    </div>
   </div>
 
   <script>
-    // Używamy publicznego endpointa Pollinations (GET). W razie problemów dopasujemy.
-    const ENDPOINT_BASE = "https://image.pollinations.ai/prompt/";
+    // Obsługa pokazywania/ukrywania klucza API
+    document.getElementById('pokaz_klucz').addEventListener('change', (e) => {
+      const keyInput = document.getElementById('klucz_api');
+      keyInput.type = e.target.checked ? 'text' : 'password';
+    });
 
-    const btn = document.getElementById('generateBtn');
-    const promptInput = document.getElementById('prompt');
-    const widthInput = document.getElementById('width');
-    const heightInput = document.getElementById('height');
-    const stepsInput = document.getElementById('steps');
-    const statusEl = document.getElementById('status');
-    const imgEl = document.getElementById('generated');
+    // Proste logowanie
+    function logLine(tresc, poziom = 'info') {
+      const ts = new Date().toLocaleTimeString();
+      const line = `[${ts}] ${poziom.toUpperCase()} - ${tresc}`;
+      console.log(line);
+      const logEl = document.getElementById('log');
+      logEl.textContent += line + "\n";
+      logEl.scrollTop = logEl.scrollHeight;
+    }
 
-    btn.addEventListener('click', () => {
-      const prompt = promptInput.value.trim();
-      const width = parseInt(widthInput.value) || 512;
-      const height = parseInt(heightInput.value) || 512;
-      const steps = parseInt(stepsInput.value) || 50;
+    // Główna funkcja generowania postaci i obrazu
+    document.getElementById('generuj').addEventListener('click', async () => {
+      const imie = (document.getElementById('imie_postaci').value || '').trim();
+      const rasa = document.getElementById('rasa_postaci').value;
+      const klasa = document.getElementById('klasa_postaci').value;
+      const wyglad = (document.getElementById('wyglad_postaci').value || '').trim();
+      const cechy = (document.getElementById('cechy_postaci').value || '').trim();
+      const seed = parseInt(document.getElementById('seed_postaci').value) || -1;
+      const klucz_api = document.getElementById('klucz_api').value.trim();
 
-      if (!prompt) {
-        statusEl.textContent = "Wpisz opis postaci.";
+      if (!imie) {
+        document.getElementById('status').textContent = 'Proszę podać imię postaci.';
+        logLine('Brak imienia postaci.', 'error');
         return;
       }
 
-      statusEl.textContent = "Generowanie obrazu...";
-      imgEl.style.display = 'block';
-      // Budujemy URL żądania. Niektóre przeglądarki mogą nie obsługiwać niektórych pól,
-      // jeśli API nie wspiera width/height/steps, po prostu zostaną zignorowane.
-      const url = ENDPOINT_BASE + encodeURIComponent(prompt) +
-                  "?width=" + width + "&height=" + height + "&steps=" + steps;
+      // Budujemy opis postaci po polsku
+      const opis = [
+        `Imię: ${imie}`,
+        `Rasa: ${rasa}`,
+        `Klasa: ${klasa}`,
+        wyglad ? `Wygląd: ${wyglad}` : '',
+        cechy ? `Cechy charakteru: ${cechy}` : ''
+      ].filter(Boolean).join(' • ');
 
-      imgEl.src = url;
-      imgEl.onload = () => statusEl.textContent = "Obraz załadowany.";
-      imgEl.onerror = () => statusEl.textContent = "Wystąpił problem z pobraniem obrazu. Spróbuj ponownie.";
-      // Nie wywołujemy fetch; obraz sam zostanie załadowany przez przeglądarkę.
-      // Ewentualnie można dodać obsługę fallbacku, jeśli obraz nie pojawi się.
-  });
+      // Wyświetl opis w sekcji
+      document.getElementById('opis_postaci').textContent = opis;
+
+      // Tworzymy prompt do obrazu (po polsku)
+      const promptObrazu = `Postać RPG: ${imie}, rasa ${rasa}, klasa ${klasa}` +
+        (wyglad ? `, wygląd: ${wyglad}` : '') +
+        (cechy ? `, cechy: ${cechy}` : '');
+
+      logLine(`Prompt: ${promptObrazu}`, 'info');
+
+      // Parametry obrazka
+      const model = 'zimage';
+      const width = 600;
+      const height = 600;
+
+      const url = `https://gen.pollinations.ai/image/${encodeURIComponent(promptObrazu)}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}`;
+
+      document.getElementById('status').textContent = 'Wysyłanie zapytania o obraz...';
+      logLine(`Wysłano zapytanie...`, 'info');
+
+      try {
+        // Budujemy opcje fetch z Authorization header, jeśli klucz został podany
+        const opcje_fetch = { method: 'GET' };
+        
+        if (klucz_api) {
+          opcje_fetch.headers = {
+            'Authorization': `Bearer ${klucz_api}`
+          };
+          logLine('Dodano nagłówek Authorization: Bearer ****', 'info');
+        } else {
+          logLine('Brak klucza API — wysyłanie bez autoryzacji', 'info');
+        }
+
+        const resp = await fetch(url, opcje_fetch);
+        
+        logLine(`Status odpowiedzi: ${resp.status}`, 'info');
+
+        if (!resp.ok) {
+          document.getElementById('status').textContent = `Błąd: ${resp.status} ${resp.statusText}`;
+          logLine(`Błąd odpowiedzi: ${resp.status} ${resp.statusText}`, 'error');
+          return;
+        }
+
+        const blob = await resp.blob();
+        logLine(`Otrzymano blob rozmiar: ${blob.size} bajtów`, 'info');
+
+        const objectURL = URL.createObjectURL(blob);
+        const img = document.getElementById('wynik');
+        
+        img.onload = () => {
+          URL.revokeObjectURL(objectURL);
+          logLine('Obraz załadowany i wyświetlony.', 'success');
+        };
+        
+        img.onerror = () => {
+          logLine('Błąd przy ładowaniu obrazu.', 'error');
+          document.getElementById('status').textContent = 'Błąd przy ładowaniu obrazu.';
+        };
+
+        img.src = objectURL;
+        document.getElementById('status').textContent = 'Obraz wygenerowany!';
+
+      } catch (err) {
+        document.getElementById('status').textContent = 'Błąd sieciowy!';
+        logLine(`Wyjątek: ${err.message}`, 'error');
+      }
+    });
   </script>
 </body>
 </html>
