@@ -1,1 +1,1 @@
-# generator-postaci-rpg
+# Generator Postaci RPG
