@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Generator Postaci RPG</title>
+    <style>
+        /* Style po polsku */
+        .cialo-strony {
+            font-family: sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: #fff;
+            padding: 20px;
+        }
+        .kontener-glowny {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 2px solid #444;
+            padding: 20px;
+            border-radius: 15px;
+        }
+        .pole-tekstowe {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            width: 70%;
+            margin-top: 10px;
+        }
+        .przycisk-generowania {
+            padding: 10px 20px;
+            background-color: #dda0dd;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        .przycisk-jezyka {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #555;
+            color: white;
+            border: 1px solid #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        #obraz-wynikowy {
+            margin-top: 20px;
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(221, 160, 221, 0.5);
+        }
+    </style>
+</head>
+<body class="cialo-strony">
+
+    <button onclick="zmienJezyk()" class="przycisk-jezyka">PL / GB</button>
+
+    <div class="kontener-glowny">
+        <h1 id="tytul">🧙‍♂️ Kreator Postaci RPG</h1>
+        <p id="opis">Wpisz opis postaci (np. Elf Łucznik, Cyberpunk Samuraj):</p>
+        
+        <input type="text" id="wejscie-tekstowe" class="pole-tekstowe" placeholder="...">
+        <br>
+        <button onclick="generujPostac()" class="przycisk-generowania" id="przycisk-start">Stwórz Postać</button>
+        
+        <div id="kontener-obrazu"></div>
+    </div>
+
+    <script>
+        // Zmienne do obsługi języków
+        let aktualnyJezyk = 'PL';
+        
+        const slownik = {
+            PL: {
+                tytul: "🧙‍♂️ Kreator Postaci RPG",
+                opis: "Wpisz opis postaci (np. Elf Łucznik, Cyberpunk Samuraj):",
+                przycisk: "Stwórz Postać",
+                ladowanie: "Tworzenie magii...",
+                alert: "Wpisz opis!"
+            },
+            GB: {
+                tytul: "🧙‍♂️ RPG Character Creator",
+                opis: "Enter character description (e.g., Elf Archer, Cyberpunk Samurai):",
+                przycisk: "Create Character",
+                ladowanie: "Conjuring magic...",
+                alert: "Enter description!"
+            }
+        };
+
+        function zmienJezyk() {
+            aktualnyJezyk = (aktualnyJezyk === 'PL') ? 'GB' : 'PL';
+            
+            document.getElementById('tytul').innerText = slownik[aktualnyJezyk].tytul;
+            document.getElementById('opis').innerText = slownik[aktualnyJezyk].opis;
+            document.getElementById('przycisk-start').innerText = slownik[aktualnyJezyk].przycisk;
+        }
+
+        function generujPostac() {
+            const tekst = document.getElementById('wejscie-tekstowe').value;
+            
+            if(!tekst) {
+                alert(slownik[aktualnyJezyk].alert);
+                return;
+            }
+
+            const obszarObrazu = document.getElementById('kontener-obrazu');
+            obszarObrazu.innerHTML = `<p>${slownik[aktualnyJezyk].ladowanie}</p>`;
+            
+            // Użycie API Pollinations
+            // encodeURIComponent zamienia spacje i polskie znaki na format zrozumiały dla adresu URL
+            const adresUrl = `https://pollinations.ai/p/${encodeURIComponent(tekst)}?width=512&height=512&seed=${Math.random()}`;
+            
+            const nowyObraz = new Image();
+            nowyObraz.src = adresUrl;
+            nowyObraz.id = "obraz-wynikowy";
+            
+            nowyObraz.onload = () => { 
+                obszarObrazu.innerHTML = ''; 
+                obszarObrazu.appendChild(nowyObraz); 
+            };
+        }
+    </script>
+</body>
+</html>
