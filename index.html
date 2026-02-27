@@ -1,126 +1,72 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <title>Generator Postaci RPG</title>
-    <style>
-        /* Style po polsku */
-        .cialo-strony {
-            font-family: sans-serif;
-            text-align: center;
-            background-color: #222;
-            color: #fff;
-            padding: 20px;
-        }
-        .kontener-glowny {
-            max-width: 600px;
-            margin: 0 auto;
-            border: 2px solid #444;
-            padding: 20px;
-            border-radius: 15px;
-        }
-        .pole-tekstowe {
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            width: 70%;
-            margin-top: 10px;
-        }
-        .przycisk-generowania {
-            padding: 10px 20px;
-            background-color: #dda0dd;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-            border-radius: 5px;
-        }
-        .przycisk-jezyka {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #555;
-            color: white;
-            border: 1px solid #fff;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-        #obraz-wynikowy {
-            margin-top: 20px;
-            max-width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(221, 160, 221, 0.5);
-        }
-    </style>
+  <meta charset="utf-8">
+  <title>Kreator Postaci RPG - Obraz z Pollinations</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; background: #f9f9fb; }
+    input, button { padding: 8px 12px; font-size: 16px; }
+    input[type="number"] { width: 90px; }
+    #generated { max-width: 100%; height: auto; display: none; margin-top: 12px; }
+    #status { margin-top: 8px; color: #333; }
+  </style>
 </head>
-<body class="cialo-strony">
+<body>
+  <h1>Kreator Postaci RPG</h1>
+  <p>Wpisz opis postaci (np. Elf Łucznik, Cyberpunk Samuraj):</p>
+  <input id="prompt" type="text" placeholder="Opis postaci" size="60" />
+  <br/><br/>
+  <label>Wymiary obrazu (px):</label>
+  <input id="width" type="number" value="512" min="128" max="2048" />
+  <input id="height" type="number" value="512" min="128" max="2048" />
+  <br/><br/>
+  <label>Kroki (steps):</label>
+  <input id="steps" type="number" value="50" min="1" max="200" />
+  <br/><br/>
+  <button id="generateBtn">Generuj obraz</button>
+  <p id="status" aria-live="polite"></p>
 
-    <button onclick="zmienJezyk()" class="przycisk-jezyka">PL / GB</button>
+  <div id="result" aria-label="Wygenerowany obraz" style="margin-top:16px;">
+    <img id="generated" src="" alt="Wygenerowany obraz pojawi się tutaj" />
+  </div>
 
-    <div class="kontener-glowny">
-        <h1 id="tytul">🧙‍♂️ Kreator Postaci RPG</h1>
-        <p id="opis">Wpisz opis postaci (np. Elf Łucznik, Cyberpunk Samuraj):</p>
-        
-        <input type="text" id="wejscie-tekstowe" class="pole-tekstowe" placeholder="...">
-        <br>
-        <button onclick="generujPostac()" class="przycisk-generowania" id="przycisk-start">Stwórz Postać</button>
-        
-        <div id="kontener-obrazu"></div>
-    </div>
+  <script>
+    // Używamy publicznego endpointa Pollinations (GET). W razie problemów dopasujemy.
+    const ENDPOINT_BASE = "https://image.pollinations.ai/prompt/";
 
-    <script>
-        // Zmienne do obsługi języków
-        let aktualnyJezyk = 'PL';
-        
-        const slownik = {
-            PL: {
-                tytul: "🧙‍♂️ Kreator Postaci RPG",
-                opis: "Wpisz opis postaci (np. Elf Łucznik, Cyberpunk Samuraj):",
-                przycisk: "Stwórz Postać",
-                ladowanie: "Teraz dzieje się magia...",
-                alert: "Wpisz opis!"
-            },
-            GB: {
-                tytul: "🧙‍♂️ RPG Character Creator",
-                opis: "Enter character description (e.g., Elf Archer, Cyberpunk Samurai):",
-                przycisk: "Create Character",
-                ladowanie: "Conjuring magic...",
-                alert: "Enter description!"
-            }
-        };
+    const btn = document.getElementById('generateBtn');
+    const promptInput = document.getElementById('prompt');
+    const widthInput = document.getElementById('width');
+    const heightInput = document.getElementById('height');
+    const stepsInput = document.getElementById('steps');
+    const statusEl = document.getElementById('status');
+    const imgEl = document.getElementById('generated');
 
-        function zmienJezyk() {
-            aktualnyJezyk = (aktualnyJezyk === 'PL') ? 'GB' : 'PL';
-            
-            document.getElementById('tytul').innerText = slownik[aktualnyJezyk].tytul;
-            document.getElementById('opis').innerText = slownik[aktualnyJezyk].opis;
-            document.getElementById('przycisk-start').innerText = slownik[aktualnyJezyk].przycisk;
-        }
+    btn.addEventListener('click', () => {
+      const prompt = promptInput.value.trim();
+      const width = parseInt(widthInput.value) || 512;
+      const height = parseInt(heightInput.value) || 512;
+      const steps = parseInt(stepsInput.value) || 50;
 
-        function generujPostac() {
-            const tekst = document.getElementById('wejscie-tekstowe').value;
-            
-            if(!tekst) {
-                alert(slownik[aktualnyJezyk].alert);
-                return;
-            }
+      if (!prompt) {
+        statusEl.textContent = "Wpisz opis postaci.";
+        return;
+      }
 
-            const obszarObrazu = document.getElementById('kontener-obrazu');
-            obszarObrazu.innerHTML = `<p>${slownik[aktualnyJezyk].ladowanie}</p>`;
-            
-            // Użycie API Pollinations
-            // encodeURIComponent zamienia spacje i polskie znaki na format zrozumiały dla adresu URL
-            const adresUrl = `https://pollinations.ai/p/${encodeURIComponent(tekst)}?width=512&height=512&seed=${Math.random()}`;
-            
-            const nowyObraz = new Image();
-            nowyObraz.src = adresUrl;
-            nowyObraz.id = "obraz-wynikowy";
-            
-            nowyObraz.onload = () => { 
-                obszarObrazu.innerHTML = ''; 
-                obszarObrazu.appendChild(nowyObraz); 
-            };
-        }
-    </script>
+      statusEl.textContent = "Generowanie obrazu...";
+      imgEl.style.display = 'block';
+      // Budujemy URL żądania. Niektóre przeglądarki mogą nie obsługiwać niektórych pól,
+      // jeśli API nie wspiera width/height/steps, po prostu zostaną zignorowane.
+      const url = ENDPOINT_BASE + encodeURIComponent(prompt) +
+                  "?width=" + width + "&height=" + height + "&steps=" + steps;
+
+      imgEl.src = url;
+      imgEl.onload = () => statusEl.textContent = "Obraz załadowany.";
+      imgEl.onerror = () => statusEl.textContent = "Wystąpił problem z pobraniem obrazu. Spróbuj ponownie.";
+      // Nie wywołujemy fetch; obraz sam zostanie załadowany przez przeglądarkę.
+      // Ewentualnie można dodać obsługę fallbacku, jeśli obraz nie pojawi się.
+  });
+  </script>
 </body>
 </html>
